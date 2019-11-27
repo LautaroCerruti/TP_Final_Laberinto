@@ -17,14 +17,14 @@ def leerLaberinto(fileName, matrix):
         iteradorLineas += 1
     return (yInicio, xInicio), (yObjetivo, xObjetivo)
 
-def nodeAnalizer(node, SumaX, SumaY, fakeQueue, solucion):
-            if len(solucion[node[0]+SumaX][node[1]+SumaY]) == 0: 
-                solucion[node[0]+SumaX][node[1]+SumaY] = solucion[node[0]][node[1]].copy()
-                solucion[node[0]+SumaX][node[1]+SumaY].append((node[0]+SumaX, node[1]+SumaY))
-                fakeQueue.append((node[0]+SumaX,node[1]+SumaY))
-            elif len(solucion[node[0]+SumaX][node[1]+SumaY]) > (len(solucion[node[0]][node[1]])+1):
-                solucion[node[0]+SumaX][node[1]+SumaY] = solucion[node[0]][node[1]].copy()
-                solucion[node[0]+SumaX][node[1]+SumaY].append((node[0]+SumaX, node[1]+SumaY))
+def nodeAnalizer(node, SumaY, SumaX, fakeQueue, solucion):
+            if len(solucion[node[0]+SumaY][node[1]+SumaX]) == 0: 
+                solucion[node[0]+SumaY][node[1]+SumaX] = solucion[node[0]][node[1]].copy()
+                solucion[node[0]+SumaY][node[1]+SumaX].append((node[0]+SumaY, node[1]+SumaX))
+                fakeQueue.append((node[0]+SumaY,node[1]+SumaX))
+            elif len(solucion[node[0]+SumaY][node[1]+SumaX]) > (len(solucion[node[0]][node[1]])+1):
+                solucion[node[0]+SumaY][node[1]+SumaX] = solucion[node[0]][node[1]].copy()
+                solucion[node[0]+SumaY][node[1]+SumaX].append((node[0]+SumaY, node[1]+SumaX))
 
 def BFS(matrix, puntoInicial):
     alto = len(matrix)
@@ -56,7 +56,7 @@ def buscaCamino(matrix, inicio, objetivo):
 def imprimeResultado(resultado, archivoSalida):
     solucion = []
     for nodo in resultado:
-        solucion.append((nodo[1]+1,nodo[0]+1))
+        solucion.append((nodo[0]+1,nodo[1]+1))
     print(solucion)
 
 def Main():
