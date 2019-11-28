@@ -60,8 +60,10 @@ def imprimeResultado(resultado, archivoSalida):
     print(solucion)
 
 def Main():
-    archivoEntrada = sys.argv[1]
-    archivoSalida = sys.argv[2]
+    #archivoEntrada = sys.argv[1]
+    #archivoSalida = sys.argv[2]
+    archivoEntrada = "salidaLaberinto.txt"
+    archivoSalida = "salida"
     matrix = []
     inicio, objetivo = leerLaberinto(archivoEntrada, matrix)
     resultado = buscaCamino(matrix, inicio, objetivo)
