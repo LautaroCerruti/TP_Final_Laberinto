@@ -28,7 +28,6 @@ void swapCoordinates(int ***arrayCoordenadas, int yNumero, int xNumero, int yUlt
 void generaObstaculosAleatorios(char** matrix, int cantidadAleatorios, int dimension){
     int numeroRandom, iterador, yPunto, xPunto, ***arrayCoordenadas, iteradorSwaps=0, iterador2 = 0, random1, random2;
     arrayCoordenadas = (int***) malloc(sizeof(int**)*dimension);
-
     for(iterador = 0; iterador < dimension; ++iterador){
         arrayCoordenadas[iterador] = (int**) malloc(sizeof(int*)*dimension);
         for(iterador2 = 0; iterador2 < dimension; ++iterador2){
