@@ -1,0 +1,9 @@
+dimension
+32768
+obstaculos fijos
+obstaculos aleatorios
+10000000
+posicion inicial
+(1,1)
+objetivo
+(10000,17000)

@@ -17,7 +17,6 @@ void setDefaultMatrix(char **matrix, int dimension, char c){
 
 void generaObstaculosAleatorios(char** matrix, int cantidadAleatorios, int dimension, char c){
     int yPunto, xPunto, iterador;
-    printf("GENERAR\n");
     if(c=='1'){
         for(iterador = 0; iterador < dimension*dimension-cantidadAleatorios;){
             yPunto = rand() % dimension;
@@ -37,7 +36,6 @@ void generaObstaculosAleatorios(char** matrix, int cantidadAleatorios, int dimen
             }
         }
     }
-    printf("Termine de GENERAR\n");
 }
 
 int charReplace(char* string, char c1, char c2){
