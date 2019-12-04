@@ -1,13 +1,35 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <time.h>
 #define MaxLinea 100
 
-void setDefaultMatrix(char **matrix, int dimension){
+
+/*
+    charReplace: char* char char -> int
+    Toma un array de char, un caracter c1 y un caracter c2
+    Reemplaza todas las apariciones en el array de c1 con c2
+    Retorna la cantidad de apariciones de c1
+*/
+int charReplace(char* string, char c1, char c2){
+    int cantidad = 0, iterador;
+    for(iterador = 0; string[iterador] != '\0'; ++iterador){
+        if(string[iterador] == c1) {
+            string[iterador] = c2;
+            ++cantidad;
+        }
+    }
+    return cantidad;
+}
+
+/*
+    setDefaultMatrix: char** int char
+    Toma un array bidimensional de char que representa el laberinto, el tamaño de cada dimension de la matriz y un caracter C
+    Guarda en todos los caracteres de la matriz, el caracter ingresado
+*/
+void setDefaultMatrix(char **matrix, int dimension, char c){
     int iterador = 0;
     for(iterador = 0; iterador < dimension; ++iterador){
-        matrix[0][iterador] = '0';
+        matrix[0][iterador] = c;
     }
     matrix[0][dimension] = '\0';
     for(iterador = 1; iterador < dimension; ++iterador){
@@ -15,129 +37,138 @@ void setDefaultMatrix(char **matrix, int dimension){
     }
 }
 
-void swapCoordinates(int ***arrayCoordenadas, int yNumero, int xNumero, int yUltimoNumero, int xUltimoNumero){
-    int x, y;
-    y = arrayCoordenadas[yNumero][xNumero][0];
-    x = arrayCoordenadas[yNumero][xNumero][1];
-    arrayCoordenadas[yNumero][xNumero][0] = arrayCoordenadas[yUltimoNumero][xUltimoNumero][0];
-    arrayCoordenadas[yNumero][xNumero][1] = arrayCoordenadas[yUltimoNumero][xUltimoNumero][1];
-    arrayCoordenadas[yUltimoNumero][xUltimoNumero][0] = y;
-    arrayCoordenadas[yUltimoNumero][xUltimoNumero][1] = x;
-}
-
-void generaObstaculosAleatorios(char** matrix, int cantidadAleatorios, int dimension){
-    int numeroRandom, iterador, yPunto, xPunto, ***arrayCoordenadas, iteradorSwaps=0, iterador2 = 0, random1, random2;
-    arrayCoordenadas = (int***) malloc(sizeof(int**)*dimension);
-    for(iterador = 0; iterador < dimension; ++iterador){
-        arrayCoordenadas[iterador] = (int**) malloc(sizeof(int*)*dimension);
-        for(iterador2 = 0; iterador2 < dimension; ++iterador2){
-            arrayCoordenadas[iterador][iterador2] = (int*) malloc(sizeof(int)*2);
-            arrayCoordenadas[iterador][iterador2][0] = iterador;
-            arrayCoordenadas[iterador][iterador2][1] = iterador2;
+/*
+    generaObstaculosAleatorios: char** int int char
+    Toma un array bidimensional de char, la cantidad de obstaculos a generar, el tamaño de cada dimension de la matriz y un caracter C
+    Modifica la matriz, para que tenga la cantidad de obstaculos aleatorios requridos
+    El caracter que se ingresa tiene que ser el que se uso para la matriz predeterminada
+    Si el caracter ingresado es '1', se completa la matriz con lugares libres '0'
+    Si el caracter ingresado es '0', se completa la matriz con obstaculos'1'
+*/
+void generaObstaculosAleatorios(char** matrix, int cantidadAleatorios, int dimension, char c){
+    int yPunto, xPunto, iterador;
+    if(c=='1'){
+        for(iterador = 0; iterador < dimension*dimension-cantidadAleatorios;){
+            yPunto = rand() % dimension;
+            xPunto = rand() % dimension;
+            if(matrix[yPunto][xPunto] == c){
+                matrix[yPunto][xPunto] = '0';
+                ++iterador;
+            }
+        }
+    } else {
+        for(iterador = 0; iterador < cantidadAleatorios;){
+            yPunto = rand() % dimension;
+            xPunto = rand() % dimension;
+            if(matrix[yPunto][xPunto] == c){
+                matrix[yPunto][xPunto] = '1';
+                ++iterador;
+            }
         }
     }
-    for(iterador = 0; iterador < cantidadAleatorios;){
-        random1 = rand() % (dimension-(iteradorSwaps/dimension));
-        if(random1 == (dimension-(iteradorSwaps/dimension)-1)){
-            random2 = rand() % (dimension-(iteradorSwaps%dimension));
-        }
-        else
+}
+
+/*
+    leeYGeneraLaberinto: FILE* int char** -> int
+    Toma un archivo, la dimension del laberinto y el array bidimensional donde se esta almacenando
+    Esta funcion lee el archivo, y genera el laberinto con todas las cosas que alli se especifican
+    Tambien valida algunas cosas como que no se pidan mas numeros aleatorios que el tamaño del laberinto, que no se repitan las posiciones
+    ya sean de obstaculos, inicio o objetivo
+    Retorna un int, que es 0 si no fue valida la entrada del archivo, 1 si lo fue
+*/
+int leeYGeneraLaberinto(FILE* entrada, int dimension, char **matrix){
+    int iterador, yEntidad, xEntidad, cantAleatorios, valido = 1, cantFijos = 0, transformaFijos = 0;
+    char buffer[MaxLinea], relleno;
+    fgets(buffer, MaxLinea, entrada);
+    while (fgetc(entrada) == '(' && valido)
+    {
+        fgets(buffer, MaxLinea, entrada);
+        ++cantFijos;
+    }
+    fgets(buffer, MaxLinea, entrada);
+    fscanf(entrada, "%d\n", &cantAleatorios);
+    if(cantAleatorios > (dimension*dimension-2-cantFijos)) valido = 0;
+    if(valido){
+        if(cantAleatorios <= ((dimension*dimension)/2)) relleno = '0';
+        else relleno='1';
+        setDefaultMatrix(matrix, dimension, relleno);
+        rewind(entrada);
+        fgets(buffer, MaxLinea, entrada);
+        fgets(buffer, MaxLinea, entrada);
+        fgets(buffer, MaxLinea, entrada);
+
+        while (fscanf(entrada, "(%d,%d)\n", &yEntidad, &xEntidad) && valido)
         {
-            random2 = rand() % dimension;
+            if(matrix[yEntidad-1][xEntidad-1]==relleno && yEntidad-1<dimension && xEntidad-1<dimension && yEntidad>0 && xEntidad>0){
+                matrix[yEntidad-1][xEntidad-1]='F';
+            } else{
+                valido = 0;
+            }
         }
-        yPunto = arrayCoordenadas[random1][random2][0];
-        xPunto = arrayCoordenadas[random1][random2][1];
-        if(matrix[yPunto][xPunto] == '0'){
-            matrix[yPunto][xPunto] = '1';
-            ++iterador;
+        if(valido){
+            fgets(buffer, MaxLinea, entrada);
+            fgets(buffer, MaxLinea, entrada);
+            fgets(buffer, MaxLinea, entrada);
+            fscanf(entrada, "(%d,%d)\n", &yEntidad, &xEntidad);
+            if(matrix[yEntidad-1][xEntidad-1]==relleno && yEntidad-1<dimension && xEntidad-1<dimension && yEntidad>0 && xEntidad>0){
+                matrix[yEntidad-1][xEntidad-1]='I';
+            } else{
+                valido = 0;
+            }
+            if(valido){
+                fgets(buffer, MaxLinea, entrada);
+                fscanf(entrada, "(%d,%d)\n", &yEntidad, &xEntidad);
+                if(matrix[yEntidad-1][xEntidad-1]==relleno && yEntidad-1<dimension && xEntidad-1<dimension && yEntidad>0 && xEntidad>0){
+                    matrix[yEntidad-1][xEntidad-1]='X';
+                    generaObstaculosAleatorios(matrix, cantAleatorios, dimension, relleno);
+                    for(iterador = 0; transformaFijos < cantFijos && iterador < dimension; ++iterador){
+                        transformaFijos += charReplace(matrix[iterador], 'F', '1');
+                    }
+                } else{
+                    valido = 0;
+                }
+            }
         }
-        swapCoordinates(arrayCoordenadas, random1, random2, (dimension-(iteradorSwaps/dimension)-1), (dimension-(iteradorSwaps%dimension))-1);
-        iteradorSwaps++;
+    }
+    return valido;
+}
+
+/*
+    imprimeLaberinto: FILE* char** int
+    Toma un archivo, un array bidimensional que representa el laberinto y la dimension del mismo
+    Imprime en el archivo el laberinto
+*/
+void imprimeLaberinto(FILE* salida, char** matrix, int dimension){
+    int iterador, iterador2;
+    for(iterador = 0; iterador < dimension; ++iterador){
+        fprintf(salida, "%s\n", matrix[iterador]);
     }
 }
 
-char** leeYGeneraLaberinto(FILE* entrada, int dimension){
-    int iterador, yEntidad, xEntidad, cantAleatorios, noValido = 1, cantFijos = 0;
+int main(int argc, char *argv[]){
+    int iterador, dimension, generoBandera;
     char **matrix, buffer[MaxLinea];
+    srand(atoi(argv[3]));
+    FILE *entrada, *salida;
+    entrada = fopen(argv[1],"r");
+    fgets(buffer, MaxLinea, entrada);
+    fscanf(entrada, "%d\n", &dimension);
     matrix = (char**) malloc(sizeof(char*)*dimension);
     for(iterador = 0; iterador < dimension; ++iterador){
         matrix[iterador] = (char*) malloc(sizeof(char)*(dimension+1));
     }
-    setDefaultMatrix(matrix, dimension);
-    fgets(buffer, MaxLinea, entrada);
-    while (fgetc(entrada) == '(' && noValido)
-    {
-        fscanf(entrada, "%d,%d)\n", &yEntidad, &xEntidad);
-        if(matrix[yEntidad-1][xEntidad-1]=='0' && yEntidad-1<dimension && xEntidad-1<dimension && yEntidad>0 && xEntidad>0){
-            matrix[yEntidad-1][xEntidad-1]='1';
-            ++cantFijos;
-        } else{
-            noValido = 0;
-        }
-    }
-    if(noValido){
-        fgets(buffer, MaxLinea, entrada);
-        fscanf(entrada, "%d\n", &cantAleatorios);
-        if(cantAleatorios > (dimension*dimension-2-cantFijos)){
-            noValido = 0;
-        }
-        fgets(buffer, MaxLinea, entrada);
-        fscanf(entrada, "(%d,%d)\n", &yEntidad, &xEntidad);
-        if(matrix[yEntidad-1][xEntidad-1]=='0' && yEntidad-1<dimension && xEntidad-1<dimension && yEntidad>0 && xEntidad>0){
-            matrix[yEntidad-1][xEntidad-1]='I';
-        } else{
-            noValido = 0;
-        }
-        if(noValido){
-            fgets(buffer, MaxLinea, entrada);
-            fscanf(entrada, "(%d,%d)\n", &yEntidad, &xEntidad);
-            if(matrix[yEntidad-1][xEntidad-1]=='0' && yEntidad-1<dimension && xEntidad-1<dimension && yEntidad>0 && xEntidad>0){
-                matrix[yEntidad-1][xEntidad-1]='X';
-                generaObstaculosAleatorios(matrix, cantAleatorios, dimension);
-            } else{
-                noValido = 0;
-            }
-        }
-    }
-    if(!noValido){
-        for(iterador = 0; iterador < dimension; ++iterador){
-            free(matrix[iterador]);
-        }
-        free(matrix);
-        return NULL;
-    } else
-    {
-        return matrix;
-    }
-}
-
-void imprimeLaberinto(FILE* salida, char** matrix, int dimension){
-    int iterador, iterador2;
-    if(matrix == NULL){
-        fprintf(salida, "No se pudo generar el laberinto\n");
-    } else {
-        for(iterador = 0; iterador < dimension; ++iterador){
-            fprintf(salida, "%s\n", matrix[iterador]);
-        }
-    }
-}
-
-int main(){
-    int iterador, dimension;
-    char **matrix, buffer[MaxLinea];
-    srand(time(NULL));
-    FILE *entrada, *salida;
-    entrada = fopen("Entrada.txt","r");
-    fgets(buffer, MaxLinea, entrada);
-    fscanf(entrada, "%d\n", &dimension);
-    matrix = leeYGeneraLaberinto(entrada, dimension);
+    generoBandera = leeYGeneraLaberinto(entrada, dimension, matrix);
     fclose(entrada);
-    salida = fopen("salidaLaberinto.txt","w+");
-    imprimeLaberinto(salida, matrix, dimension);
-    fclose(salida);
+    if(generoBandera){
+        salida = fopen(argv[2],"w+");
+        imprimeLaberinto(salida, matrix, dimension);
+        fclose(salida);
+    } else {
+        printf("No se pudo generar el laberinto, entrada invalida\n");
+    }
     for(iterador = 0; iterador < dimension; ++iterador){
         free(matrix[iterador]);
     }
     free(matrix);
-    return 0;
+    return generoBandera;
 }
